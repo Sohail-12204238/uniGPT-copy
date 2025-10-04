@@ -28,6 +28,3 @@ def chat():
     return jsonify({"reply": response})
 
 # Run the app
-if __name__ == "__main__":
-    # Use host='0.0.0.0' to make it accessible on your local network
-    app.run(host="0.0.0.0", port=5001, debug=False)
