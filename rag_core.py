@@ -197,8 +197,8 @@ def initialize_rag_chain():
     embeddings = HuggingFaceEmbeddings(model_name=MODEL_NAME, encode_kwargs=encode_kwargs)
     # client = QdrantClient(path=VECTOR_STORE_PATH)
     client = QdrantClient(
-    url="https://d33be019-c2e3-4e1e-bcfc-424baddabad3.europe-west3-0.gcp.cloud.qdrant.io",
-    api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.e75LvvcviBo8f0E6bte2bX8jR7T9FyYdhEADxt0NPRA",
+    url=os.environ.get("QDRANT_URL"),
+    api_key=os.environ.get("QDRANT_API_KEY"),
     )
     vector_store = Qdrant(client=client, collection_name=COLLECTION_NAME, embeddings=embeddings)
     retriever = vector_store.as_retriever(search_type='mmr', search_kwargs={'k': 2})
