@@ -183,8 +183,10 @@ import os
 # VECTOR_STORE_PATH = "./vector_store"
 COLLECTION_NAME = "Uni_data1"
 MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
-COHERE_API_KEY = "dRrV13nDT200p0mV7g3hKyBfmgIAf2YWxspzO4cl"
-os.environ["TAVILY_API_KEY"] = "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"
+# --- Configuration ---
+# ... other lines
+COHERE_API_KEY = os.environ.get("COHERE_API_KEY")
+os.environ["TAVILY_API_KEY"] = os.environ.get("TAVILY_API_KEY")
 
 def initialize_rag_chain():
     """
