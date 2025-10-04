@@ -1,0 +1,11 @@
+langchain
+langchain-community
+langchain-qdrant
+langchain-huggingface
+langchain-cohere
+qdrant-client
+sentence-transformers
+pypdf
+duckduckgo-search
+flask
+gunicorn  # Recommended for production

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>uniGPT</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fff3e6, #ffe6cc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      width: 480px;
+      height: 640px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-header {
+      background: #ff7b2e;
+      color: white;
+      padding: 14px;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .chat-header img {
+      height: 28px;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: #fffdfb;
+    }
+    .message {
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 75%;
+      word-wrap: break-word;
+      opacity: 0;
+      animation: slideUp 0.3s forwards;
+    }
+    .user-message {
+      background: #ffddb8;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background: #ffeede;
+      align-self: flex-start;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #eee;
+      background: #fff8f3;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+      border-radius: 0 0 0 16px;
+      transition: background 0.3s;
+    }
+    .chat-input input:focus {
+      background: #fff3e6;
+    }
+    .chat-input button {
+      background: #ff7b2e;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 0 0 16px 0;
+      transition: background 0.3s, transform 0.1s;
+    }
+    .chat-input button:hover {
+      background: #e56a1d;
+    }
+    .chat-input button:active {
+      transform: scale(0.96);
+    }
+    
+    /* Loading dots animation */
+    .loading-dots {
+      display: flex;
+      align-items: center;
+      width: 40px;
+    }
+    .loading-dots div {
+      width: 8px;
+      height: 8px;
+      background-color: #ff7b2e;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .loading-dots .dot1 {
+      animation-delay: -0.32s;
+    }
+    .loading-dots .dot2 {
+      animation-delay: -0.16s;
+    }
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1.0);
+      }
+    }
+
+    /* New text animation */
+    .animated-text {
+      display: inline-block;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeInText 0.8s ease-out forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes fadeInText {
+      from {
+        opacity: 0;
+        transform: translateY(10px); /* Keeps the slide-in effect */
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <img src="https://raw.githubusercontent.com/Sohail-12204238/image-hosting_repo/refs/heads/main/Lovely_Professional_University_logo.png" alt="uniGPT Logo">
+      uniGPT
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatBox = document.getElementById("chat-box");
+
+      // Add user message
+      let userMsg = document.createElement("div");
+      userMsg.className = "message user-message";
+      userMsg.innerText = message;
+      chatBox.appendChild(userMsg);
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Show loading animation
+      let loadingMsg = document.createElement("div");
+      loadingMsg.className = "message bot-message";
+      loadingMsg.id = "loading-indicator";
+      loadingMsg.innerHTML = `
+        <div class="loading-dots">
+          <div class="dot1"></div>
+          <div class="dot2"></div>
+          <div class="dot3"></div>
+        </div>
+      `;
+      chatBox.appendChild(loadingMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Send to backend
+      let response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      let data = await response.json();
+
+      // Remove loading animation
+      const loadingIndicator = document.getElementById("loading-indicator");
+      if (loadingIndicator) {
+        chatBox.removeChild(loadingIndicator);
+      }
+
+      // Add bot reply with text animation
+      let botMsg = document.createElement("div");
+      botMsg.className = "message bot-message";
+      botMsg.innerHTML = `<span class="animated-text">${data.reply}</span>`;
+      chatBox.appendChild(botMsg);
+
+      // Auto-scroll
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
